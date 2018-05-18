@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         async(UI) {
             tryCatch({
                 it.printStackTrace()
-            }) {
+            } , {
                 newsAsync?.cancelByActive()
                 newsAsync = RetrofitHelper.retrofitService.getNewsList("national/list")
                 val result = newsAsync?.await()
@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     return@async
                 }
                 toast(result.size.toString())
-            }
+            })
         }
     }
 
