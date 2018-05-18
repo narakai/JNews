@@ -1,18 +1,24 @@
 package clem.app.jnews
 
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.design.widget.NavigationView
+import android.support.design.widget.Snackbar
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import clem.app.jnews.R.id.toolbar
+import clem.app.jnews.bean.NewsItem
+import clem.app.jnews.retrofit.RetrofitHelper
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.app_bar_main.*
+import kotlinx.coroutines.experimental.Deferred
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.async
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
+    private var newsAsync: Deferred<List<NewsItem>>? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +28,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         fab.setOnClickListener { view ->
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
+            getNews()
         }
 
         val toggle = ActionBarDrawerToggle(
@@ -30,6 +37,24 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         toggle.syncState()
 
         nav_view.setNavigationItemSelectedListener(this)
+    }
+
+    private fun getNews() {
+        var newsList: List<NewsItem>
+        async(UI) {
+            tryCatch({
+                it.printStackTrace()
+            }) {
+                newsAsync?.cancelByActive()
+                newsAsync = RetrofitHelper.retrofitService.getNewsList("national/list")
+                val result = newsAsync?.await()
+                result ?: let {
+                    toast("Failed")
+                    return@async
+                }
+                toast(result.size.toString())
+            }
+        }
     }
 
     override fun onBackPressed() {
